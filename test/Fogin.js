@@ -60,8 +60,8 @@ module.exports = {
     options.password = options.password || "password";
     callback = callback || function(){};
 
-    var app = express(),
-        port = options.port || 5234,
+    var port = options.port || 5234,
+        app = express(),
         defaultLogin = {
           email: "default@webmaker.org",
           subdomain: "subdomain",
@@ -74,8 +74,7 @@ module.exports = {
         });
 
     app.use( express.logger( "dev" ) );
-    app.use( express.bodyParser );
-    app.use( express.errorHandler( { dumpExceptions: true, showStack: true } ) );
+    app.use( express.bodyParser() );
 
     // App GET USER
     app.get( '/user/:id', basicAuth, function ( req, res ) {
@@ -85,7 +84,7 @@ module.exports = {
       if ( !login ) {
         res.json( 404, { error: "User not found for ID: " + id, user: null } );
       } else {
-        res.json( login );
+        res.json({ user: login });
       }
     });
 
@@ -97,7 +96,7 @@ module.exports = {
       if ( !login ) {
         res.json( 404, { error: "User not found for ID: " + id, user: null } );
       } else {
-        res.json( { error: null, isAdmin: login.isAdmin } );
+        res.json({ error: null, isAdmin: login.isAdmin });
       }
     });
 
@@ -105,7 +104,7 @@ module.exports = {
       logins.forEach( function( user ) {
         createLogin( user );
       });
-      callback( req, res );
+      callback();
     });
   },
 

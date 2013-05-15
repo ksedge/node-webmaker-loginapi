@@ -15,7 +15,7 @@
 */
 
 var assert = require( 'assert' ),
-    port = 5555,
+    port = 5556,
     username = 'username',
     password = 'password',
     login = require ( '../index.js' )( 'http://' + username + ':' + password + '@localhost:' + port ),
