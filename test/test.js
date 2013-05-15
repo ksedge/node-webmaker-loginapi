@@ -1,6 +1,6 @@
-/* 
+/*
   Copyright 2013 Mozilla Foundation
- 
+
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
@@ -15,30 +15,33 @@
 */
 
 var assert = require( 'assert' ),
-    fork = require( 'child_process' ).fork,
-    request = require( 'request' ),
-    child,
-    loginValid = require ( '../index.js' )("http://user:pass@localhost:8889"),
-    loginInvalid = require ( '../index.js' )("http://user:Pass@localhost:8889"); 
+    port = 5556,
+    username = 'username',
+    password = 'password',
+    login = require ( '../index.js' )( 'http://' + username + ':' + password + '@localhost:' + port ),
+    Fogin = require( './Fogin.js' );
 
-
-function startServer( callback ) {
-  // Spin-up the server as a child process
-  child = fork( 'test/testServer.js', null, {} );
-  child.on( 'message', function( msg ) {
-    if ( msg === 'Started' ) {
-      callback();
-    }
-  });
+function startServer( options, done ) {
+  options = options || { username: username, password: password, port: port };
+  Fogin.start({
+    port: options.port,
+    username: options.username,
+    password: options.password,
+    logins: [{
+      email: 'foo@foo.com',
+      isAdmin: true
+    }]
+  }, done );
 }
 
 function stopServer() {
-  child.kill();
+  Fogin.stop();
 }
+
 
 describe( "getUser() method", function() {
   before( function( done ) {
-    startServer( done );
+    startServer( null, done );
   });
 
   after( function() {
@@ -46,7 +49,7 @@ describe( "getUser() method", function() {
   });
 
   it( "should return the user object if the user exists", function ( done ) {
-    loginValid.getUser( "foo@foo.com", function ( error, user ){
+    login.getUser( "foo@foo.com", function ( error, user ){
       assert.ok( !error );
       assert.strictEqual( user._id, "foo@foo.com" );
       done();
@@ -54,25 +57,18 @@ describe( "getUser() method", function() {
   });
 
   it( "should return a specific error string if the user doesn't exist", function ( done ) {
-    loginValid.getUser( "foo@bar.com", function ( error, user ){
+    login.getUser( "foo@bar.com", function ( error, user ){
       assert.ok( !!error );
       assert.equal( user, undefined );
       done();
     });
   });
-
-  it( "should return a specific error string if the basicauth fails", function ( done ) {
-    loginInvalid.getUser( "foo@foo.com", function ( error, user ){
-      assert.equal( error, "Authentication failed!" );
-      done();
-    });
-  });
-}); 
+});
 
 
 describe( "isAdmin() method", function() {
   before( function( done ) {
-    startServer( done );
+    startServer( null, done );
   });
 
   after( function() {
@@ -80,7 +76,7 @@ describe( "isAdmin() method", function() {
   });
 
   it( "should return true/false if the user exists", function ( done ) {
-    loginValid.isAdmin( "foo@foo.com", function ( error, isAdmin ){
+    login.isAdmin( "foo@foo.com", function ( error, isAdmin ){
       assert.ok( !error );
       assert.strictEqual( typeof( isAdmin ), "boolean" );
       done();
@@ -88,17 +84,35 @@ describe( "isAdmin() method", function() {
   });
 
   it( "should return an error string if the user doesn't exist", function ( done ) {
-    loginValid.isAdmin( "foo@bar.com", function ( error, isAdmin ){
+    login.isAdmin( "foo@bar.com", function ( error, isAdmin ){
       assert.ok( !!error );
       assert.equal( isAdmin, undefined );
       done();
     });
   });
+});
+
+
+describe( "Auth failures", function() {
+  before( function( done ) {
+    startServer( { username: "wrong", password: "wrong", port: port }, done );
+  });
+
+  after( function() {
+    stopServer();
+  });
 
   it( "should return a specific error string if the basicauth fails", function ( done ) {
-    loginInvalid.isAdmin( "foo@foo.com", function ( error, user ){
+    login.isAdmin( "foo@foo.com", function ( error, user ){
       assert.equal( error, "Authentication failed!" );
       done();
     });
   });
-}); 
+
+  it( "should return a specific error string if the basicauth fails", function ( done ) {
+    login.getUser( "foo@foo.com", function ( error, user ){
+      assert.equal( error, "Authentication failed!" );
+      done();
+    });
+  });
+});
