@@ -21,7 +21,8 @@ var request = require( "request" ),
 // Module.exports
 module.exports = function ( rawUrl ) {
   var parsedUrl = url.parse( rawUrl ),
-      webmakerUrl = parsedUrl.href,
+      // Force a trailing slash
+      webmakerUrl = parsedUrl.href.replace( /\/$/, '/' ),
       authBits = parsedUrl.auth.split(":");
 
   if ( parsedUrl.protocol !== ("http:" || "https:") ) {
@@ -38,8 +39,8 @@ module.exports = function ( rawUrl ) {
       request({
         auth: {
           username: authBits.user,
-          password: authBits.pass, 
-          sendImmediately: false 
+          password: authBits.pass,
+          sendImmediately: false
         },
         method: "GET",
         uri: webmakerUrl + "user/" + id,
@@ -60,8 +61,8 @@ module.exports = function ( rawUrl ) {
       request({
         auth: {
           username: authBits.user,
-          password: authBits.pass, 
-          sendImmediately: false 
+          password: authBits.pass,
+          sendImmediately: false
         },
         method: "GET",
         uri: webmakerUrl + "isAdmin?id=" + id,
@@ -70,7 +71,7 @@ module.exports = function ( rawUrl ) {
           if ( response.statusCode == 401 ) {
             return callback( "Authentication failed!" );
           }
-          
+
           if ( error || body.error ) {
             return callback( error || body.error );
           }
