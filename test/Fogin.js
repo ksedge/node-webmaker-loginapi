@@ -16,19 +16,39 @@
 
 
 /**
- * A Fake MakeAPI server (i.e., FakeAPI). The idea is to simulate MongoDB
- * and Elastic Search, while still retaining the routes and internal logic.
- * The FakeAPI server is not as full-featured as the MakeAPI, espcially
- * when it comes to complex searches in Elastic Search. Currently, only
- * searching by ID (i.e., _id) and Tags is supported.
+ * A Fake Login server (i.e., Fogin). The idea is to simulate MongoDB
+ * while still retaining the routes and internal logic.
  *
  * This module exposes two functions, `start` and `stop`. These are used
- * to control an instance of the FakeAPI. The `start` function can optionally
- * be passed a `port` (5123 is the default), and a number of `fakes`, which
- * will cause fake documents to be generated and inserted (see counterfeit.js).
+ * to control an instance of Fogin. The `start` function takes two args:
  *
- * You can see an example of how to interact with the server and use
- * make-api.js in `example.js`.
+ *   Fogin.start( options, callback );
+ *
+ * where `options` should have a username, password, and port.  The username
+ * and password pair are used for HTTP basic auth. You can also provide an
+ * array of logins, with data for users to be insterted into the fake login
+ * server:
+ *
+ * Fogin.start({
+ *   port: 5555,
+ *   username: "someone",
+ *   password: "secret",
+ *   logins: [
+ *     {
+ *       email: "admin@somewhere.com",
+ *       subdomain: "admin",
+ *       fullName: "An Admin",
+ *       isAdmin: true
+ *     },
+ *     {
+ *       email: "not-admin@somewhere.com",
+ *       subdomain: "notadmin",
+ *       fullName: "Not Admin",
+ *       isAdmin: false
+ *     }
+ *   ]
+ * }, function() { ... });
+ *
  */
 var express = require( "express" ),
     server,
