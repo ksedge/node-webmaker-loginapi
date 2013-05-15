@@ -21,11 +21,12 @@ var assert = require( 'assert' ),
     login = require ( '../index.js' )( 'http://' + username + ':' + password + '@localhost:' + port ),
     Fogin = require( './Fogin.js' );
 
-function startServer( done ) {
+function startServer( options, done ) {
+  options = options || { username: username, password: password, port: port };
   Fogin.start({
-    port: port,
-    username: username,
-    password: password,
+    port: options.port,
+    username: options.username,
+    password: options.password,
     logins: [{
       email: 'foo@foo.com',
       isAdmin: true
@@ -40,7 +41,7 @@ function stopServer() {
 
 describe( "getUser() method", function() {
   before( function( done ) {
-    startServer( done );
+    startServer( null, done );
   });
 
   after( function() {
@@ -62,19 +63,12 @@ describe( "getUser() method", function() {
       done();
     });
   });
-
-  it( "should return a specific error string if the basicauth fails", function ( done ) {
-    login.getUser( "foo@foo.com", function ( error, user ){
-      assert.equal( error, "Authentication failed!" );
-      done();
-    });
-  });
 });
 
 
 describe( "isAdmin() method", function() {
   before( function( done ) {
-    startServer( done );
+    startServer( null, done );
   });
 
   after( function() {
@@ -96,9 +90,27 @@ describe( "isAdmin() method", function() {
       done();
     });
   });
+});
+
+
+describe( "Auth failures", function() {
+  before( function( done ) {
+    startServer( { username: "wrong", password: "wrong", port: port }, done );
+  });
+
+  after( function() {
+    stopServer();
+  });
 
   it( "should return a specific error string if the basicauth fails", function ( done ) {
     login.isAdmin( "foo@foo.com", function ( error, user ){
+      assert.equal( error, "Authentication failed!" );
+      done();
+    });
+  });
+
+  it( "should return a specific error string if the basicauth fails", function ( done ) {
+    login.getUser( "foo@foo.com", function ( error, user ){
       assert.equal( error, "Authentication failed!" );
       done();
     });
